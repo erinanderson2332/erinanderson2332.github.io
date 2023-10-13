@@ -2,7 +2,8 @@
 /* CSS Document */
 
 html {
-	
+	margin: 1em;
+	padding: 1em;
 }
 
 body {
@@ -21,6 +22,15 @@ h3 {
 	font-family: 'Francois One', sans-serif;
 }
 
+#header {
+	background: #3D9825;
+	text-decoration-color: white;
+}
+
 #menu {
-	
+	background: #3DB4CD;
+}
+
+.sectiontitle {
+	background: #3D9825;
 }
