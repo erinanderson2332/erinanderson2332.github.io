@@ -1,35 +1,188 @@
 @charset "utf-8";
 /* CSS Document */
 
+/* Default page styles - styles applicable to every page */
 html {
-	margin: 1em;
-	padding: 1em;
+	padding: 2em;
+	color: #314846;
+	font-size: 16px;
+}
+
+*, *:before, *:after {
+	box-sizing: border-box;
 }
 
 body {
 	font-family: 'Lato', sans-serif;
+	display: grid;
+	grid-template-columns: auto 25%;
+	grid-template-rows: 100px 50px auto 75px;
 }
 
 h1 {
 	font-family: 'Francois One', sans-serif;
+	padding: 1em;
 }
 
 h2 {
 	font-family: 'Francois One', sans-serif;
+	padding: .25em 1em;
 }
 
 h3 {
 	font-family: 'Francois One', sans-serif;
+	padding: 0em 1em;
 }
 
-#header {
-	background: #3D9825;
+p {
+	padding-top: auto;
+	padding-left: 1em;
+	padding-bottom: auto;
+	padding-right: 1em;
 }
 
-#menu {
-	background: #3DB4CD;
+a {
+	color: #F99D25;
+}
+
+a:hover {
+	color: #5AC5C4;
+}
+
+a:visited {
+	color: #5AC5C4;
+}
+
+/* Default - Header styles */
+header {
+	height: 100px;
+	padding: 0px .25em;
+	grid-column: 1/3;
+	grid-row: 1/2;
+}
+
+header img {
+	height: 75px;
+	display: block;
+}
+
+header h1 {
+	padding: 0px;
+}
+
+/* Default - Nav styles */
+nav {
+	grid-column: 1/3;
+	grid-row: 2/3;
+}
+
+nav ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	background-color: #5AC5C4;
+	position: -webkit-sticky; /* for Safari*/
+	position: sticky;		/* For some reason, sticky positioning not working. Troubleshoot later. */
+	top: 0;
+	display: flex;
+}
+
+nav li {
+	flex: 1;
+	border-right: 1px solid #314846;
+}
+
+nav li:last-child {
+	border-right: none;
+}
+
+nav li a {
+	display: block;
+	color: #314846;
+	text-align: center;
+	padding: 0.5em 1em;
+	text-decoration: none;
+}
+
+nav li a:hover {
+	background-color: #F99D25;
+	color: #FFFFFF;
+}
+
+nav li a:visited {
+	color: inherit;
+}
+
+.active {
+	background-color:#F99D25;
+}
+
+/* Default - Content styles */
+main {
+	grid-column: 1/2;
+	grid-row: 3/4;
 }
 
 .sectiontitle {
-	background: #3D9825;
+	background: #5AC5C4;
+	padding-left: .5em;
+	margin: 2em auto 1em auto;
+}
+
+.sectiontitle a {
+	color: inherit;
+	text-decoration: none;
+}
+
+/* Default - Aside styles */
+aside {
+	grid-column: 2/3;
+	grid-row: 3/4;
+	background-color:#E4EDEB;
+	border: 2px solid #5AC5C4;
+}
+
+/*Default - Footer styles */
+footer {
+	font-size: .75em;
+	background-color:#5AC5C4;
+	grid-column: 1/3;
+	grid-row: 4/5;
+	align-content: center;
+}
+
+footer img {
+	height: 50px;
+	padding: .25em .75em;
+}
+
+footer p {
+	display: inline-block;
+}
+
+/* Home page styles */
+#blogpreview {
+	background-color:#E5EDEC;
+}
+
+#blogpostpreviewtitle a {
+	color: inherit;
+	text-decoration: none;
+}
+
+
+/* About page */
+#companyhistory img {
+	height: 50px;
+}
+
+.employeephoto img {
+	float: left;
+	height: 150px;
+	margin: auto 1em 1em auto;
+}
+
+.employeebio {
+	display: flow-root;
+	background-color:#E4EDEB;
 }

@@ -1,77 +1,75 @@
 <!doctype html>
 <html>
 <head>
-<meta charset="utf-8">
-<link href="styles/style.css" rel="stylesheet" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Francois+One&family=Lato&display=swap" rel="stylesheet">
-<title>Dullroar Enterprises</title>
+	<meta charset="utf-8">
+	<link href="styles/style.css" rel="stylesheet" />
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Francois+One&family=Lato&display=swap" rel="stylesheet">
+	<title>Dullroar Enterprises</title>
 </head>
 
 <body>
-	<div id=header>
-	<a href="index.html">
+	<header>
 		<h1>
-		Dullroar Enterprises
+			<a href="index.html">
+			<img src="images/dulloarlogo1.svg" alt="Dullroar logo">
+			</a>
 		</h1>
-	</a>
-	</div>
-	<div id=menu>
-	<ul>
-		<li>Services</li>
-		<li>Books</li>
-		<a href="blog.html"><li>Blog</li></a>
-		<a href="about.html"><li>About</li></a>
-		<li>Contact</li>
+	</header>
+	<nav>
+		<ul>
+			<li><a href="index.html" title="Home" class="active">Home</a></li>
+			<li><a href="services.html" title="Services">Services</a></li>
+			<li><a href="books.html" title="Books">Books</a></li>
+			<li><a href="blog.html" title="Blog">Blog</a></li>
+			<li><a href="about.html" title="About">About</a></li>
+			<li><a href="contact.html" title="Contact">Contact</a></li>
 		</ul>
-	</div>
-	<div id=reviews>
-		<p class=quote>
-		Dullroar was great! - Fred
-		</p>
-		<p class=quote>
-		Jim did fantastic work! - Joe
-		</p>
-		<p class=quote>
-		Dullroar was so competent and professional! - Jane
-		</p>
-	</div>
-	<div class=sectiontitle>
-		<a href="blog.html">
-			<h2>
-			Blog
+	</nav>
+	<main>
+		<section id=reviews>
+			<p class=quote>
+			Dullroar was great! - Fred
+			</p>
+			<p class=quote>
+			Jim did fantastic work! - Joe
+			</p>
+			<p class=quote>
+			Dullroar was so competent and professional! - Jane
+			</p>
+		</section>
+		<section id=blogpreview>
+			<h2 class=sectiontitle>
+				<a href="blog.html">Blog</a>
 			</h2>
-		</a>
-	</div>
-	<div>
-		<a href="link">
-			<h3 class=blogposttitle>
-			Linux for Windows Users
+			<h3 id=blogpostpreviewtitle>
+				<a href="link">Linux for Windows Users</a>
 			</h3>
-		</a>
-		<p class=blogpostpreview>
-		This is where the preview for this blogpost will go.
-		</p>
-		<a href="link">
-			<p>Read more...</p>
-		</a>
-		<a href="link">
-			<h3 class=blogposttitle>
-			West Spanish Peak, July 2023
+			<p class=blogpostpreview>
+				This is where the preview for this blogpost will go.
+			</p>
+			<p>
+				<a href="link">Read more...</a>
+			</p>
+			<h3 id=blogpostpreviewtitle>
+				<a href="link">West Spanish Peak, July 2023</a>
 			</h3>
-		</a>
-		<p class=blogpostpreview>
-		This is where the preview for this blogpost will go.
-		</p>
-		<a href="link">
-			<p>Read more...</p>
-		</a>
-	</div>
-	<div id=advertisement>
-		<a href="https://www.oreilly.com/library/view/fuzzy-data-matching/9781098152260/">
-			<img src=images/imagename>
-		</a>
-	</div>
+			<p class=blogpostpreview>
+				This is where the preview for this blogpost will go.
+			</p>
+			<p>
+				<a href="link">Read more...</a>
+			</p>
+		</section>
+	</main>
+	<aside id=advertisement>
+		<a href="https://www.oreilly.com/library/view/fuzzy-data-matching/9781098152260/"><img src="images/advertisement-placeholder.svg"></a>
+	</aside>
+	<footer>
+		<img src="images/dullroarlogo1-white.svg">
+		<p>Copyright 2023</p>
+		<p>Careers</p>
+	</footer>
 	</body>
 </html>

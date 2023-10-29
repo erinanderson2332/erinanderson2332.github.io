@@ -10,50 +10,52 @@
 </head>
 
 <body>
-	<div id=header>
+	<header>
 	<a href="index.html">
 		<h1>
-		Dullroar Enterprises
+		<img src="images/dulloarlogo1.svg" alt="Dullroar logo">
 		</h1>
 	</a>
-	</div>
-	<div id=menu>
+	</header>
+	<nav>
 	<ul>
-		<li>Services</li>
-		<li>Books</li>
-		<a href="blog.html"><li>Blog</li></a>
-		<a href="about.html"><li>About</li></a>
-		<li>Contact</li>
-		</ul>
-	</div>
-	<div id=companyhistory>
-		<h2 id=logo>
-		<img src=image/location>
-		</h2>
-		<p>
-		This is where a brief company history will go.
-		</p>
-	</div>
-	<div class=sectiontitle>
-		<h2>
-		Employees
-		</h2>
-	</div>
-	<div id=employeebio>
-		<h3 class=employeename>
-		Jim Lehmer
-		</h3>
-		<img src=image/location class=employeephoto>
-		<p>
-		This is where a brief employee biography will go.
-		</p>
-	</div>
-	<div id=reviewssidebar>
-		<div class=sectiontitle>
-			<h2>
-			Reviews
+		<li><a href="index.html" title="Home">Home</a></li>
+		<li><a href="services.html" title="Services">Services</a></li>
+		<li><a href="books.html" title="Books">Books</a></li>
+		<li><a href="blog.html" title="Blog">Blog</a></li>
+		<li><a href="about.html" title="About" class="active">About</a></li>
+		<li><a href="contact.html" title="Contact">Contact</a></li>
+	</ul>
+	</nav>
+	<main>
+		<section id=companyhistory>
+			<h2>About Dullroar Enterprises</h2>
+			<p>
+			This is where a brief company history will go. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. At tempor commodo ullamcorper a lacus vestibulum sed arcu non. Facilisis sed odio morbi quis commodo odio aenean sed. Ipsum dolor sit amet consectetur adipiscing elit. Condimentum lacinia quis vel eros donec ac odio. Tellus at urna condimentum mattis pellentesque id nibh tortor id. Aenean sed adipiscing diam donec adipiscing tristique risus nec feugiat. Suscipit adipiscing bibendum est ultricies. Arcu cursus euismod quis viverra nibh. Nulla posuere sollicitudin aliquam ultrices sagittis.
+			</p>
+		</section>
+		<section id="employees">
+			<h2 class=sectiontitle>
+			Employees
 			</h2>
-		</div>
+		</section>
+		<section class=employeebio>
+			<h3 class=employeename>
+			Jim Lehmer
+			</h3>
+			<p class=employeephoto>
+			<img src=images/jimlehmer.jpg>
+			</p>
+			<p>
+			This is where a brief employee biography will go. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+			</p>
+			<p>
+			Quisque non tellus orci ac auctor augue mauris. In ornare quam viverra orci sagittis eu. Enim sed faucibus turpis in eu mi. Vel pharetra vel turpis nunc eget lorem dolor. Gravida rutrum quisque non tellus orci ac. Ultrices gravida dictum fusce ut. Eget duis at tellus at urna condimentum. Hendrerit dolor magna eget est lorem ipsum dolor sit.
+			</p>
+		</section>
+	</main>
+	<aside id=reviewssidebar>
+		<h2 class=sectiontitle>Reviews</h2>
 		<p class=quote>
 		quote
 		</p>
@@ -69,6 +71,6 @@
 		<p class=quote>
 			quote
 		</p>
-	</div>
+	</aside>
 </body>
 </html>
