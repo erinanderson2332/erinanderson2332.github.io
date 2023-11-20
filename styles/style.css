@@ -104,15 +104,15 @@ nav li a {
 	padding: 1em 2em;
 }
 
+nav li a:visited {
+	color: inherit;
+}
 nav li a:hover {
 	background-color: #F99D25;
 	color: #FFFFFF;
 	font-weight: bold;
 }
 
-nav li a:visited {
-	color: inherit;
-}
 
 .active {
 	background-color:#F99D25;
