@@ -6,7 +6,8 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Francois+One&family=Lato&display=swap" rel="stylesheet">
-	<title>Contact - Dullroar Enterprises</title>
+	<title>Contact</title>
+	<link rel="icon" type="image/x-icon" href="images/favicon1.svg">
 </head>
 
 <body>
@@ -16,23 +17,56 @@
 		</h1>
 	</header>
 	<nav>
-	<ul>
-		<li><a href="index.html" title="Home">Home</a></li>
-		<li><a href="services.html" title="Services">Services</a></li>
-		<li><a href="books.html" title="Books">Books</a></li>
-		<li><a href="blog.html" title="Blog">Blog</a></li>
-		<li><a href="about.html" title="About">About</a></li>
-		<li><a href="contact.html" title="Contact" class="active">Contact</a></li>
-	</ul>
+		<ul>
+			<li><a href="index.html">Home</a></li>
+			<li><a href="services.html">Services</a></li>
+			<li><a href="books.html">Books</a></li>
+			<li><a href="blog.html">Blog</a></li>
+			<li><a href="about.html">About</a></li>
+			<li><a href="contact.html" class="active">Contact</a></li>
+		</ul>
 	</nav>
 	<main>
-		<form>      
-		  <input name="name" type="text" class="feedback-input" placeholder="Name" />   
-		  <input name="email" type="text" class="feedback-input" placeholder="Email" />
-		  <textarea name="text" class="feedback-input" placeholder="Comment"></textarea>
-		  <input type="submit" value="SUBMIT"/>
-		</form>
+		<section id="contacttable">
+			<p>Have a question, comment, or feedback?</p>
+			<p>Contact Dullroar!</p>
+			<table>
+				<colgroup>
+					<col id="contactcol1" />
+					<col id="contactcol2" />
+				</colgroup>
+				<tr>
+					<th>Email:</th>					<td>messagedullroar@fakeemailaddress.com</td>
+				</tr>
+				<tr>
+					<th>Phone:</th>
+					<td>(575) 555-1234</td>
+				</tr>
+				<tr>
+					<th>Fax:</th>
+					<td>(575) 555-5678</td>
+				</tr>
+			</table>
+			<p>Or, fill out the form below.</p>
+		</section>
+		<section id="messageform">
+			<form action="welcome.php" method="post">      
+				<label for="name">Name:</label>
+				<input type="text" name="name" id="name" class="feedback-input" placeholder="Name" size="50" /><br>   
+
+				<label for="email">Email:</label>
+				<input type="email" name="email" id="email" class="feedback-input" placeholder="Email" size="50" /><br>
+
+				<label for="message">Message:</label><br>
+				<textarea name="message" id="message" class="feedback-input" placeholder="Message"></textarea><br>
+
+				<input type="submit" value="Send"/>
+			</form>
+		</section>		
 	</main>
+	<aside id="advertisement">
+		<a href="https://www.oreilly.com/library/view/fuzzy-data-matching/9781098152260/"><img src="images/bookad1.jpg" alt="Ad for book Fuzzy Data Matching with SQL"></a>
+	</aside>
 	<footer>
 		<img src="images/dullroarlogo1-white.svg" alt="Footer Dullroar logo">
 		<p>Copyright 2023</p>
