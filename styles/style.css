@@ -107,6 +107,7 @@ nav li a {
 nav li a:hover {
 	background-color: #F99D25;
 	color: #FFFFFF;
+	font-weight: bold;
 }
 
 nav li a:visited {
