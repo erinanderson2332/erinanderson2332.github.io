@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="styles/style.css" rel="stylesheet">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,33 +14,1295 @@
 
 <body>
 	<header>
-		<h1>
-			<img src="images/dulloarlogo1.svg" alt="Header Dullroar logo">
-		</h1>
+		<img src="images/dulloarlogo1.svg" alt="Header Dullroar logo" id="top">
 	</header>
 	<nav>
 		<ul>
 			<li><a href="index.html">Home</a></li>
-			<li><a href="services.html">Services</a></li>
 			<li><a href="books.html">Books</a></li>
 			<li><a href="blog.html" class="active">Blog</a></li>
 			<li><a href="about.html">About</a></li>
 			<li><a href="contact.html">Contact</a></li>
 		</ul>
+		<a href="#top"><img id="topbutton" src="images/arrow-dark.svg" alt="Arrow to top of page"></a>
 	</nav>
-	<aside id="blognav">
-	
-	</aside>
-	<main>
-	
+	<section id="blognav">
+		<details>
+			<summary class="menu">
+				Tech Stuff
+			</summary>
+			<ul>
+				<li>
+				  <a href="#always-read-generated-code">Always Read Generated Code</a>
+				</li>
+				<li>
+					<a href="#empty-anonymous-collections">Empty Anonymous Collections in C#</a>
+				</li>
+				<li>
+				  <a href="#like-considered-harmful">LIKE Considered Harmful</a>
+				</li>
+				<li>
+				  <a href="#parsing-html-with-sql">Parsing HTML With SQL</a>
+				</li>
+				<li>
+				  <a href="#time-series">Time Series in SQL</a>
+				</li>
+				<li>
+				  <a href="#trailing-whitespace-as-security">Trailing Whitespace as "Security"</a>
+				</li>
+				<li>
+				  <a href="#using-checksums-in-sql-to-find">Using Checksums in SQL to Find Groupings of Like Data</a>
+				</li>
+			  </ul>
+		</details>
+		<details>
+			<summary class="menu">
+				Outdoor Adventures
+			</summary>
+			<ul>
+				<li>
+				  <a href="#citadel-peak">Pettingel &amp; Citadel [2000]</a>
+				</li>
+			  </ul>
+		</details>
+		<details>
+			<summary class="menu">
+				Fun and Sundry
+			</summary>
+			<ul>
+				<li>
+				<a href="#a-bridge-to-nowhere">A Bridge to Nowhere</a>
+				</li>
+			</ul>
+		</details>
+	</section>
+	<main id="blogcontent">
+		<h1 id="tech-stuff">
+			Tech Stuff<a class="permalink" href="#tech-stuff" title="Permalink"></a>
+		</h1>
+		<p class="sectionsummary">Various bits of tech I've figured out and want to remember.</p>
+			<article class="blogpost" id="always-read-generated-code">
+			  <h2>
+				Always Read Generated Code
+			  </h2>
+			<p>This is one of my "A-ha" moments.</p>
+			  <details>
+				<summary>Read more...</summary>
+				<p>
+				  Consider how a lot of interfaces work&mdash;load an object from some remote system, make
+				  some property changes on the object, then save it back to the remote system. The
+				  pseudocode looks something like:
+				 	</p>
+				<pre>if (needToChangePropX == true)
+		{
+			LogChange("PropX", obj.PropX, newPropXValue);
+			obj.PropX = newPropXValue;
+			objChanged = true; // To keep track if anything changed
+		}
+
+		if (needToChangePropY == true)
+		{
+			LogChange("PropY", obj.PropY, newPropYValue);
+			obj.PropY = newPropYValue;
+			objChanged = true; // To keep track if anything changed
+		}
+
+		// And so on...
+
+		if (objChanged == true)
+		{
+			obj.Save();
+		}</pre>
+				<p>
+				  Besides just the general ugliness that has to come from checking all the values to
+				  determine if something applies or not, there are those three repetitive statements in the
+				  body of each <code>if</code>:
+				  </p>
+				<ol>
+				 	<li>Log something (because without logging debugging this thing is almost impossible, especially production problems).</li>
+				 	<li>Change the actual thing you want to change.</li>
+					<li>Mark that you have changed the list item.</li>
+				</ol>
+				<p>
+				  That last piece is because you don't want to save the list item on <b><i>every</i></b>
+				  property change. The round-trips and version history would kill you.
+				  </p>
+				<p>
+				  Even if you extract out everything to a method, you're having to manually call that
+				  method for every property change.
+				  </p>
+				<p>
+				  The above works, but it sure is ugly (as interfacing with legacy systems often is).
+				  </p>
+				<p>
+				  But for interfaces that are based on service references or <code>.edmx</code> files in
+				  Entity Framework, there is a better way.
+				  </p>
+				<p>
+				  While researching something else, I actually was looking at the generated code in
+				  <code>Reference.cs</code> that gets created when doing a service reference...The first
+				  thing that caught my eye but wasn't immediately useful is that all the classes in the
+				  generated code are <b><i>partials</i></b>&mdash;hmmm. More on that at the end. But the
+				  second thing that caught my eye was this:
+				  </p>
+				<pre>[System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Services.Design", "1.0.0")]
+		public string PropX
+		{
+			get
+			{
+				return this._PropX;
+			}
+			set
+			{
+				this.OnPropXChanging(value);
+				this._PropX = value;
+				this.OnPropXChanged();
+				this.OnPropertyChanged("PropX");
+			}
+		}
+		[System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Services.Design", "1.0.0")]
+		private string _PropX;
+		partial void OnPropXChanging(string value);
+		partial void OnPropXChanged();</pre>
+				<p>
+				  Well look at that. Every property in that generated context class raises
+				  <code>OnChange</code> events! At first, I thought I could use the partials and just
+				  override those for each property. But that is a lot of work. But see that
+				  <code>this.OnPropertyChanged("PropX")</code> at the end of the setter? <b><i>THAT</i></b>
+				  is interesting! Let's go look at that:
+				  </p>
+				<pre>[System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Services.Design", "1.0.0")]
+		public event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+		[System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Services.Design", "1.0.0")]
+		protected virtual void OnPropertyChanged(string property)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this,
+									 new global::System.ComponentModel.PropertyChangedEventArgs(property));
+			}
+		}</pre>
+				<p>
+				  It checks to see if the public <code>PropertyChanged</code> property has an event handler
+				  in it, and if it does, it calls it, passing in both the list item object itself (the list
+				  item's current state after the change) <b><i>and the property name that changed!</i></b>
+				  Bingo!
+				  </p>
+				<p>
+				  So, in the loop where I am reading each item, I now just do this up front:
+				  </p>
+				<pre>obj.PropertyChanged +=
+		(object sender, System.ComponentModel.PropertyChangedEventArgs e) =&gt;
+		{
+			var changedItem = (RemoteObjectType)sender;
+			Log.Trace($"{e.PropertyName} changed to " +
+					   "{changedItem.GetType().GetProperty(e.PropertyName).GetValue(changedItem, null)}");
+			objChanged = true;
+		};</pre>
+				<p>
+				<section>
+				  Thanks to closures, the handler gets access to the <code>objChanged</code> flag. And
+				  using reflection I can log based on the property name passed in.
+				</section>
+				<section class="blogaside">
+				  The other thoughts I have had but haven't acted on are using the fact the class is a
+				  partial, which means I could create a second file for that class and implement something
+				  like the <code>objChanged</code> flag directly inside the remote item object itself,
+				  which would be much cleaner, I think.
+				</section>
+				  </p>
+				<p class="clear">
+				  So now the code to check and set a property simply looks like this:
+				  </p>
+				<pre>if (needToChangePropX == true)
+		{
+			obj.PropX = newPropXValue;
+		}</pre>
+				<p>
+				  But we <b><i>still</i></b> get logging and the flag set telling us the list item has
+				  changed.
+				  </p>
+				<p>
+				  How cool is that?
+				  </p>
+			  </details>
+			</article>
+			<article class="blogpost" id="empty-anonymous-collections">
+			  <h2>
+				Empty Anonymous Collections in C#
+			  </h2>
+			  <p>
+				This week I had a need to create an empty list with groups of three items (name, customer
+				number, external entity id) in one place in a method, and use it further down in the same
+				method.
+				</p>
+			  <details>
+				<summary>Read more...</summary>
+				<p>
+				  This is transient data used only in this single method. Since I am only using it in one
+				  place, creating a <code>class</code> or <code>struct</code> seemed like overkill. (And
+				  yes, it indicated a refactor was necessary, and I later did so, but stay with me&mdash;la
+				  la la can't hear you).
+				</p>
+				<p>
+				  My first thought was to use a tuple:
+				</p>
+				<pre>var x = new List&lt;Tuple&lt;string, long, int&gt;&gt;();
+		...
+		x.Add(new Tuple&lt;string, long, int&gt;("Jones, David", 12345, 1));</pre>
+				<p>
+				  Of course the problem with that is while it is strongly typed, the names when I consume
+				  it later are <code>Item1</code>, <code>Item2</code> and <code>Item3</code>. Not to
+				  meaningful.
+				</p>
+				<p>
+				  OK, then I can use <code>dynamic</code>, and give it meaningful names when I add an item
+				  to the list
+				</p>
+				<pre>var y = new List&lt;dynamic&gt;();
+		...
+		y.Add(new { name = "Jones, David", custno = 12345, entityid = 1 });</pre>
+				<p>
+				  The problem with that is then I don't get strong typing, so if I mistype one of the
+				  member names when I am accessing it later, I won't know until run-time. Not good.
+				</p>
+				<p>
+				  This then came to me. It works just dandy, and gives me an empty list of the appropriate
+				  type with both meaningful member names and strong typing:
+				</p>
+				<pre>var z = (from x in new List&lt;int&gt;() select new { name = "", custno = 0L, entityid = 0 }).ToList();
+		...
+		z.Add(new { name = "Jones, David", custno = 12345, entityid = 1 });</pre>
+				<p>
+				  Because it is selecting from an empty list, it creates an empty list, but strongly typed
+				  exactly as I need it! Cool? Or horrifying?
+				</p>
+				<figure>
+				  <div id="img-strongly-typed" title="Strongly-typed empty anonymous collection"></div>
+				  <figcaption>
+					Strongly-typed empty anonymous collection
+				  </figcaption>
+				</figure>
+			  </details>
+			</article>
+			<article class="blogpost" id="like-considered-harmful">
+			  <h2>
+				LIKE Considered Harmful
+			  </h2>
+			  <p>
+				<code>LIKE</code>, am I <code>RIGHT</code>?
+				</p>
+			  <details>
+				<summary>Read more...</summary>
+				<section>
+				  <p>
+					We have a vendor database at work to which we've built some custom integrations. It is
+					a document management system. One of the columns in the main table contains object
+					names&mdash;folders, files, users, whatever&mdash;they store all types of objects in
+					one big table.
+					</p>
+				  <p>
+					If the folder is a "customer-level" folder then it contains the customer's name
+					followed by the customer id in parentheses (I didn't design any of this!) There is no
+					direct access to the customer id by itself, so I wrote some SQL that looks to see if a
+					customer folder already exists using the customer id. It looked like the SQL below:
+					</p>
+				  <pre>SELECT
+			TOP 1 CASE WHEN Id IS NULL THEN 0 ELSE Id END AS Id,
+			Name
+		FROM Objects WITH(NoLock)
+		WHERE
+			Name LIKE '%(' + CAST(@custno AS NVARCHAR(10)) + ')%'</pre>
+				  <p>
+					This has been getting slower and slower as the database grows in size, and was taking
+					10-15 seconds per run. Not good.
+					</p>
+				</section>
+				<section class="blogaside">
+				  Since it is a doc management system it would be fair to ask, "Why isn't the customer
+				  number stored as metadata on the folder?" The answer is, "It is," but because of the way
+				  the vendor's database is designed, it actually takes <b><i>longer</i></b> to look up
+				  objects by using the metadata than using the approach below!
+				</section>
+				<p>
+				  Changing it to use the <code>PATINDEX</code> function instead of <code>LIKE</code> didn't
+				  help at all, nor did I expect it to.
+					</p>
+				<p>
+				  Then I changed the wildcard search to instead do an "ends with" search:
+					</p>
+				<pre>SELECT
+			TOP 1 CASE WHEN Id IS NULL THEN 0 ELSE Id END AS Id,
+			Name
+		FROM Objects WITH(NoLock)
+		WHERE
+			RIGHT(Name, LEN('(' + CAST(@custno AS NVARCHAR(10)) + ')')) = '(' + CAST(@custno AS NVARCHAR(10)) + ')'</pre>
+				<p>
+				  This ran in under a second. I have now rolled it into production.
+					</p>
+				<p>
+				  In retrospect, this result doesn't surprise me. What did surprise me was the order of
+				  magnitude difference.
+					</p>
+			  </details>
+			</article>
+			<article class="blogpost" id="parsing-html-with-sql">
+			  <h2>
+				Parsing HTML With SQL
+			  </h2>
+			  <p>
+				A friend once sent me a request on how to parse HTML with SQL. Challenge accepted!
+				</p>
+			  <details>
+				<summary>Read more...</summary>
+				<p>
+				  Here is the original request:
+				</p>
+				<blockquote>
+				  <p>
+					I was wondering if you knew how to use SQL to parse a column and return multiple
+					individual records where text in that column is started with <code>&lt;b&gt;This is a
+					test&lt;/b&gt;</code>. The column might have these tags multiple times.
+					</p>
+				  <p>
+					<b>Sample Column Text...</b>
+					</p>
+				  <pre>This is a test
+		&lt;b&gt;Test&lt;/b&gt;
+		How is it going
+		&lt;b&gt;Get this Text Also&lt;/b&gt;</pre>
+				  <p>
+					<b>It should return...</b>
+					</p>
+				  <pre>Test
+		Get this Text also</pre>
+				</blockquote>
+				<p>
+				  Here was my initial reply:
+				</p>
+				<blockquote>
+				  <p>
+					You're going to hate me, but you can do this with SQL's XML functionality. I have built
+					a test case that works on your sample set.
+					</p>
+				</blockquote>
+				<p>
+				  <b>NOTE: ALL XML FUNCTION NAMES ARE CASE-SENSITIVE (lowercase), EVEN THOUGH SQL IN
+				  GENERAL IS NOT.</b>
+				</p>
+				<p>
+				  Consider the following table, which represents the existing table, which I presumed had
+				  the HTML stored as a <code>VARCHAR</code>:
+				</p>
+				<pre>CREATE TABLE dbo.ParseExample
+		(
+			HTMLText VARCHAR(4000) NULL
+		)</pre>
+				<p>
+				  Now we insert the test case into it:
+				</p>
+				<pre>INSERT INTO ParseExample VALUES('This is a test
+		&lt;B\b&gt;Test&lt;/b&gt;
+		How is it going
+		&lt;b&gt;Get this Text Also&lt;/b&gt;')</pre>
+				<p>
+				  <code>SELECT *</code> will bring back what you'd expect.
+				</p>
+				<p>
+				  So, we can convert the HTML into XML (even though it's not valid XML) on the fly using a
+				  common table expression:
+				</p>
+				<pre>WITH Converted
+		AS
+		(SELECT CAST(HTMLText AS XML) AS X FROM ParseExample)
+		SELECT * FROM Converted</pre>
+				<p>
+				  Now you can do fun things with XPath and XML functions. For example, to just get the
+				  <code>&lt;b&gt;</code> elements and their values (the XPath <code>//b</code> will look
+				  for bold elements wherever they are in the XML DOM), you can use the <code>query</code>
+				  function:
+				</p>
+				<pre>WITH Converted
+		AS
+		(SELECT CAST(HTMLText AS XML) AS X FROM ParseExample)
+		SELECT X.query('//b') FROM Converted</pre>
+				<p>
+				  But this isn't useful, because the result still has the <code>&lt;b&gt;</code> tags and
+				  also returned everything in one row and column, which isn't what you'd want. So then you
+				  use the <code>nodes</code> function to get individual rows for each node that matches the
+				  XPath query, and then the <code>value</code> function to extract just the text (and not
+				  the tags) from that:
+				</p>
+				<pre>WITH Converted
+		AS
+		(SELECT CAST(HTMLText AS XML) AS X FROM ParseExample)
+		SELECT nref.value('.', 'nvarchar(max)') BoldText
+		FROM Converted
+		CROSS APPLY X.nodes('//b') AS R(nref)</pre>
+				<p>
+				  The above returns exactly what we are looking for.
+				</p>
+				<p>
+				  Of course, there was one more wrinkle&mdash;his actual live data had
+				  <code>&amp;nbsp;</code> entities in it, so the XML parser was choking on that with:
+				</p>
+				<pre>XML parsing: line 1, character 9, well formed check: undeclared entity</pre>
+				<p>
+				  In follow-up discussions he decided to just do this in the common table expression:
+				</p>
+				<pre>(SELECT CAST(REPLACE(HTMLText, '&amp;nbsp;', ' ') AS XML) AS X FROM ParseExample)</pre>
+				<p>
+				  I personally would prefer something more like:
+				</p>
+				<pre>(SELECT CAST(REPLACE(HTMLText, '&amp;nbsp;', '&amp;amp;nbsp;') AS XML) AS X FROM ParseExample)</pre>
+				<p>
+				  Anyway, I thought I would document this just for fun.
+				</p>
+			  </details>
+			</article>
+			<article class="blogpost" id="time-series">
+			  <h2>
+				Time Series in SQL
+			  </h2>
+			  <p>
+				Recently at work I needed to turn different sets of "point-in-time" (PiT) data into time
+				series using SQL Server.
+				</p>
+			  <details>
+				<summary>Read more...</summary>
+				<p>
+				  Specifically, given rows in a SQL Server database that represent the current state of an
+				  entity, how can we show how long that entity has been or was "in process?" I am sure it
+				  is not original, but since I figured this out independently, I thought I would document
+				  it here.
+				</p>
+				<h3>
+				  Assumptions
+				</h3>
+				<p>
+				  The PiT data has to have at least three columns for this technique to work:
+				</p>
+				<ol>
+				  <li>
+					<b>Created on</b>&mdash;a column indicating the date and time at which the entity was
+					originally created.
+					</li>
+				  <li>
+					<b>Modified on</b>&mdash;a column indicating the date and time at which the entity was
+					last altered.
+					</li>
+				  <li>
+					<b>Status</b>&mdash;some sort of code indicating whether the entity is still "open"
+					(in-flight, in-process) or else "closed" (finished, expired, cancelled, etc.) This
+					doesn’t have to be a simple yes/no or open/closed status, as we will see.
+					</li>
+				</ol>
+				<p>
+				  There are many business entities that have that sort of data&mdash;e.g., service tickets
+				  in a help desk system, opportunities in a CRM system, loan applications, etc.
+				</p>
+				<p>
+				  Also, we will need a simple table with a series of dates in it. See the next section for
+				  that.
+				</p>
+				<h3>
+				  Create a Sequence of Dates
+				</h3>
+				<p>
+				  I can’t take credit for this&mdash;I ripped off the original logic from the accepted
+				  answer at <a href= 
+				  "https://stackoverflow.com/questions/1378593/get-a-list-of-dates-between-two-dates-using-a-function"
+				  target="_blank" title="StackOverflow">this StackOverflow post</a>. However, I just wanted
+				  a fixed range, and I chose from January 1, 1980, well before our business data begins,
+				  until December 31, 2100, long after I am dead (I will let this be part of someone’s Y2100
+				  problem).
+				</p>
+				<p>
+				  First I created a view:
+				</p>
+				<pre>CREATE VIEW [dbo].[ExplodeDates]
+		AS
+		WITH N0
+		AS
+		(
+			SELECT 1 as n UNION ALL SELECT 1)
+				,N1 AS (SELECT 1 as n FROM N0 t1, N0 t2)
+				,N2 AS (SELECT 1 as n FROM N1 t1, N1 t2)
+				,N3 AS (SELECT 1 as n FROM N2 t1, N2 t2)
+				,N4 AS (SELECT 1 as n FROM N3 t1, N3 t2)
+				,N5 AS (SELECT 1 as n FROM N4 t1, N4 t2)
+				,N6 AS (SELECT 1 as n FROM N5 t1, N5 t2)
+				,nums AS (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS num FROM N6
+		)
+		SELECT DATEADD(day,num-1,'1980-01-01') AS thedate
+		FROM nums
+		WHERE num &lt;= DATEDIFF(day,'1980-01-01','2100-12-31') + 1</pre>
+				<p>
+				  Note that the above generates the given date range of over 44,000 rows
+				  <b>fast</b>&mdash;under a second (because there is no I/O involved). However, after some
+				  testing it seemed like the view would be too slow (not much the SQL optimizer can do with
+				  it), so then I created a materialized view and populated it as follows:
+				</p>
+				<pre>CREATE TABLE dbo.ExplodedDates
+		(
+			TheDate DATETIME NOT NULL,
+			CONSTRAINT PK_ComplianceChecklist PRIMARY KEY CLUSTERED
+			(
+				TheDate ASC
+			)
+		)
+		GO
+
+		INSERT INTO ExplodedDates SELECT * FROM ExplodeDates</pre>
+				<p>
+				  Now we have a simple, keyed table with all the dates from 1/1/1980 through 12/31/2100.
+				  Cool.
+				</p>
+				<h3>
+				  Convert PiT Rows to Time Series
+				</h3>
+				<p>
+				  For example purposes I’ll use opportunities from Microsoft CRM. However, the concept
+				  remains the same regardless of your entity, as long as it has the three columns I
+				  mentioned above, i.e., "created on," "modified on," and "status." Let’s create and
+				  populate the time series table for opportunities.
+				</p>
+				<pre>CREATE TABLE CurrentOpportunityStatus
+		(
+			StartedOn DATETIME NOT NULL,
+			LastTouched DATETIME NOT NULL,
+			OpportunityId UNIQUEIDENTIFIER NOT NULL,
+			CONSTRAINT PK_CurrentOpportunityStatus PRIMARY KEY CLUSTERED
+			(
+				StartedOn ASC,
+				LastTouched ASC,
+				OpportunityId ASC
+			)
+		)
+		GO
+
+		INSERT INTO CurrentOpportunityStatus
+		SELECT
+			FO.createdon AS StartedOn,
+			CASE FO.statecode
+				WHEN 0 THEN GETDATE()     -- Open
+				WHEN 1 THEN FO.modifiedon -- Won
+				WHEN 2 THEN FO.modifiedon -- Lost
+				ELSE GETDATE()            -- Unknown state code
+			END AS LastTouched,
+			FO.opportunityid
+		FROM Your_MSCRM.dbo.FilteredOpportunity FO WITH(NOLOCK)</pre>
+				<p>
+				  Note that we use the current date and time if the opportunity is still open, otherwise we
+				  used the <code>modifiedon</code> value to indicate when it was closed. For some other
+				  entities I have done this for, the <code>CASE</code> statement can get quite long, but at
+				  the end, the logic remains:
+				</p>
+				<ol>
+					<li>For "open" status codes, the <code>WHEN</code> returns the current date and time.</li>
+					<li>For "closed" status codes, the <code>WHEN</code> returns the last modified date and time.</li>
+				</ol>
+				<p>
+				  That’s all there is to it.
+				</p>
+				<h3>
+				  How Many <i>X</i> Were Open on Any Given Date?
+				</h3>
+				<p>
+				  The whole reason I went down this path was then to be able to chart how many of each
+				  entity type was open on any given date. That is where the <code>ExplodedDates</code>
+				  table comes in to play. For each entity, simply create a view similar to the following:
+				</p>
+				<pre>CREATE VIEW TimeSeriesOfOpportunities
+		AS
+		SELECT TOP 10000000 -- TOP used to get ORDER BY in a view
+			TheDate,
+			COUNT(*) AS OpenOpps
+		FROM ExplodedDates ED
+		INNER JOIN CurrentOpportunityStatus O ON
+			ED.TheDate &gt;= O.StartedOn
+			AND ED.TheDate &lt;= O.LastTouched
+		GROUP BY TheDate
+		ORDER BY TheDate</pre>
+				<p>
+				  Basically, for each date in the date range, if is is on or after the opportunity’s
+				  "created on" date and it is before or on the "last touched" date (either "modified on" or
+				  today’s date), then it is counted as "open" on that day. This yields a series like:
+				</p>
+				<pre>TheDate    OpenOpps
+		1/1/2017    1455
+		1/2/2017    1455
+		1/3/2017    1456
+		1/4/2017    1453
+		1/5/2017    1463
+		1/6/2017    1465
+		1/7/2017    1465
+		...lots more rows...
+		1/27/2018    899
+		1/28/2018    899
+		1/29/2018    899
+		1/30/2018    828
+		1/31/2018    816
+		2/1/2018     810
+		2/2/2018     801
+		2/3/2018     781</pre>
+				<h3>
+				  Conclusion
+				</h3>
+				<p>
+				  Creating the above takes very little time for each business entity. Then, you can start
+				  showing graphs that show counts of the various types of entities in your business that
+				  are active by date. It is very handy for dashboards and the like.
+				</p>
+			  </details>
+			</article>
+			<article class="blogpost" id="trailing-whitespace-as-security">
+			  <h2>
+				Trailing Whitespace as "Security"
+			  </h2>
+			  <p>
+				This is one of those “back in the day” stories, so if you don’t want to listen to this
+				grandpa rock in his chair and spin a yarn, then move along...
+				</p>
+			  <details>
+				<summary>Read more...</summary>
+				<p>
+				  My very first job "in computers" was as a computer operator from 1980 to 1985. It was a
+				  good job in many ways, especially since it allowed me to go to college during the day and
+				  work in the evenings, and I never had to step foot in the school computer lab because I
+				  was able to do all my programming for class on my work account.
+				</p>
+				<p>
+				  As time went on a fellow operator and I started creating a bunch of scripts to help us do
+				  our jobs, using mostly <a href="http://en.wikipedia.org/wiki/ISPF" target="_blank" title=
+				  "ISPF">ISPF</a> screens and first <a href="http://en.wikipedia.org/wiki/CLIST" target= 
+				  "_blank" title="CLIST">CLIST</a> (the horror! the horror!) and then <a href= 
+				  "http://en.wikipedia.org/wiki/Rexx" target="_blank" title="Rexx">Rexx</a> as the
+				  scripting language to drive the screens.
+				</p>
+				<p>
+				  For reasons that now escape me, we didn't want other operators running our scripts. Yet
+				  they were all available, since we were all in the same security group and we didn't have
+				  the ability to secure files to our individual ids. What to do? Then I got a "bright"
+				  idea.
+				</p>
+				<p>
+				  On <a href="http://en.wikipedia.org/wiki/MVS" target="_blank" title="MVS">MVS</a> at that
+				  time script files could be in one of two record formats&mdash;80 character fixed length
+				  records (to mimic punched cards) and 255 character variable length records. The
+				  <b><i>vast</i></b> majority of people used 80 character records in their scripts. This
+				  was to our advantage. Remember, at this time we were working completely with <a href= 
+				  "http://en.wikipedia.org/wiki/3270" target="_blank" title="3270">3270</a> "green screen"
+				  terminals, most of which were 80 character displays, although there were a few that had
+				  132 character displays. While you could scroll to the right there were no visual
+				  indicators that you would need to do so on a long line&mdash;you just had to know that
+				  there was more data to the right.
+				</p>
+				<p>
+				  So using the psychological expectation by most people that script files are 80 characters
+				  wide, the solution was simple. At the top of the file I simply put a comment block, like
+				  this:
+				</p>
+				<pre>/************************************************************************/
+		/* This script written by Jim Lehmer.                                   */
+		/* It does blah, blah, blah.                                            */
+		/************************************************************************/</pre>
+				<p>
+				  Then, padding those comment lines with spaces&nbsp;I put in an <code>IF</code> statement
+				  similar to the following <b><i>way</i></b> over&nbsp;to the right of the comment block:
+				</p>
+				<pre>IF USERID() != "jlehmer" THEN
+		EXIT</pre>
+				<p>
+				  Everyone thought we had some sort of special security on the files, because they'd try
+				  and run the scripts and the code would immediately exit. <b><i>No one</i></b> figured it
+				  out, <b><i>for years</i></b>. They never thought to scroll to the right, even if they
+				  noticed that the record type on the script files was 255 character variable length
+				  records.
+				</p>
+				<p>
+				  So now you've heard everything&mdash;security through trailing whitespace! The ultimate
+				  "security through obscurity."
+				</p>
+			  </details>
+			</article>
+			<article class="blogpost" id="using-checksums-in-sql-to-find">
+			  <h2>
+				Using Checksums in SQL to Find Groupings of Like Data
+			  </h2>
+			  <p>
+				This is a bit of an edge case and there are probably better ways to approach it, but it
+				took me less than five minutes to whip up and saved someone else in our company a bunch of
+				time.
+				</p>
+			  <details>
+				<summary>Read more...</summary>
+				<p>
+				  We have at least two custom apps (neither of which I had any part of writing,
+				  BTW&mdash;as the post goes on you’ll see why I disavow them) that use denormalized tables
+				  that hold both rows for individual items (users in one case, pick list items in the
+				  other) and groups (user groups and pick list names, respectively) in the same table.
+				  Then, in both apps there is a second “mapping” table that maps the individual items to
+				  the group items. Perhaps a sample would be clearer.
+				</p>
+				<p>
+				  Here is the <i>Users</i> table&mdash;misnamed, since it holds both user and group
+				  definitions:
+				</p>
+				<table>
+				  <thead>
+					<tr class="header">
+					  <th style="text-align: right;">
+						<span class="mw20">id</span>
+					  <th style="text-align: left;">
+						<span class="mw20">name</span>
+					  <th style="text-align: left;">
+						<span class="mw20">type</span>
+				  <tbody>
+					<tr class="odd">
+					  <td style="text-align: right;">
+						<span class="mw20">1</span>
+					  <td style="text-align: left;">
+						<span class="mw20">admins</span>
+					  <td style="text-align: left;">
+						<span class="mw20">group</span>
+					<tr class="even">
+					  <td style="text-align: right;">
+						<span class="mw20">2</span>
+					  <td style="text-align: left;">
+						<span class="mw20">joe</span>
+					  <td style="text-align: left;">
+						<span class="mw20">user</span>
+					<tr class="odd">
+					  <td style="text-align: right;">
+						<span class="mw20">3</span>
+					  <td style="text-align: left;">
+						<span class="mw20">jim</span>
+					  <td style="text-align: left;">
+						<span class="mw20">user</span>
+					<tr class="even">
+					  <td style="text-align: right;">
+						<span class="mw20">4</span>
+					  <td style="text-align: left;">
+						<span class="mw20">lusers</span>
+					  <td style="text-align: left;">
+						<span class="mw20">group</span>
+					<tr class="odd">
+					  <td style="text-align: right;">
+						<span class="mw20">5</span>
+					  <td style="text-align: left;">
+						<span class="mw20">jon</span>
+					  <td style="text-align: left;">
+						<span class="mw20">user</span>
+					<tr class="even">
+					  <td style="text-align: right;">
+						<span class="mw20">6</span>
+					  <td style="text-align: left;">
+						<span class="mw20">jack</span>
+					  <td style="text-align: left;">
+						<span class="mw20">user</span>
+					<tr class="odd">
+					  <td style="text-align: right;">
+						<span class="mw20">7</span>
+					  <td style="text-align: left;">
+						<span class="mw20">jerry</span>
+					  <td style="text-align: left;">
+						<span class="mw20">user</span>
+				</table>
+				<p>
+				  <br>
+				</p>
+			  	<p>
+				  And here is the <i>GroupUser</i> table&mdash;the “mapping” table:
+				</p>
+				<table>
+				  <thead>
+					<tr class="header">
+					  <th style="text-align: right;">
+						<span class="mw20">groupid</span>
+					  <th style="text-align: right;">
+						<span class="mw20">userid</span>
+				  <tbody>
+					<tr class="odd">
+					  <td style="text-align: right;">
+						<span class="mw20">1</span>
+					  <td style="text-align: right;">
+						<span class="mw20">2</span>
+					<tr class="even">
+					  <td style="text-align: right;">
+						<span class="mw20">1</span>
+					  <td style="text-align: right;">
+						<span class="mw20">3</span>
+					<tr class="odd">
+					  <td style="text-align: right;">
+						<span class="mw20">4</span>
+					  <td style="text-align: right;">
+						<span class="mw20">5</span>
+					<tr class="even">
+					  <td style="text-align: right;">
+						<span class="mw20">4</span>
+					  <td style="text-align: right;">
+						<span class="mw20">6</span>
+					<tr class="odd">
+					  <td style="text-align: right;">
+						<span class="mw20">4</span>
+					  <td style="text-align: right;">
+						<span class="mw20">7</span>
+				</table>
+				<p>
+				  <br>
+				</p>
+				<p>
+				  With me so far? If you haven’t clawed your eyes out by now, it’s probably because you’ve
+				  seen this sort of thing, too. Heinous, heinous stuff. Especially because that
+				  <i>Users</i> data table doesn’t just have those three columns in it&mdash;no, it has
+				  other columns, some of them holding orthogonal data based on what the <i>Type</i> column
+				  contains.
+				</p>
+				<p>
+				  Now, consider a really flawed application that we want to rewrite. The application
+				  depends on two tables such as the above to hold users and groups in the <i>Users</i>
+				  table, with the <i>GroupUser</i> mapping table holding which users are in which groups.
+				  For reasons that are too painful to even contemplate the original authors of the app,
+				  which deals with reports, decided that each report should have it’s own group for
+				  defining who can access it. Worse, they didn’t allow for groups within groups, which
+				  means there are literally <b><i>hundreds</i></b> of groups (like, almost
+				  <b><i>800</i></b>), many of which hold&mdash;you guessed it&mdash;<b><i>identical group
+				  members, all manually maintained as reports are added or people are hired or leave or
+				  change job positions</i></b>. So obviously as we rewrite the app we want to be able to
+				  define such groups once and reuse them across reports.
+				</p>
+				<p>
+				  How to figure out which groups are identical in terms of user membership? Well, one way
+				  would be to have the person who administers them sit for a day and figure it all out by
+				  hand and hope they don’t miss the fact that some groups may differ from others by only
+				  one member (and some of these groups can hold a hundred users in them, so good luck with
+				  that). Instead, I came up with the following using T-SQL’s <code>CHECKSUM</code>
+				  function.
+				</p>
+				<p>
+				  Here is it in all its glory:
+				</p>
+				<pre>SELECT
+			[Group],
+			SUM(Checksum) AS Total
+		FROM
+		(
+			SELECT
+				G.NAME AS [Group],
+				CAST(CHECKSUM(U.NAME) AS BIGINT) AS Checksum
+			FROM GROUPUSER GU
+			INNER JOIN USERS G ON
+				GU.GROUPID = G.ID
+				AND G.TYPE = 'Group'
+			INNER JOIN USERS U ON
+				GU.USERID = U.ID
+				AND U.TYPE = 'User'
+			GROUP BY G.NAME, U.NAME
+		) A
+		GROUP BY [Group]
+		ORDER BY 2, [Group]</pre>
+				<p>
+				  Basically, this joins each user to their appropriate groups (a row per group/user combo)
+				  and takes the checksum of the user’s name (login id, actually). Then those checksums are
+				  summed together by group and displayed in order by those sums and then group names
+				  underneath that. When looking at the checksums all the rows with the same sum likely hold
+				  the same group members.
+				</p>
+				<p>
+				  Now, purists will note there is some chance of collision with checksums, and summing
+				  checksums certainly raises the chances of that slightly, but in our case the results that
+				  came out look right, in terms of the person who admins all the groups looking at the
+				  clusters and saying, “Yes, those groups all have the same members in them.” So I wouldn’t
+				  claim this would work across really large data sets but for the purpose at hand it did
+				  Just Fine, and five minutes worth of work saved someone a lot of manual cross-checking.
+				</p>
+			  </details>
+			</article>
+		<h1 id="outdoor-adventures">
+		  Outdoor Adventures
+		</h1>
+		<p class="sectionsummary">
+		  Trip reports from over the years. See here for my <a href= "https://www.14ers.com/php14ers/usrpeaksv.php?usernum=38419" target="_blank" title=
+		  "14ers">14ers list,</a> and here for my <a href=  "https://www.14ers.com/php14ers/usrpeaksv.php?usernum=38419&checklist=13ers" target="_blank"
+		  title="13ers">13ers list.</a> See my working toward ultra-light pack weights
+		  <a href="https://lighterpack.com/r/60aj6g" target="_blank">here</a> and <a href= 
+		  "https://lighterpack.com/r/34tqul" target="_blank">here</a>.
+		  </p>
+		<article class="blogpost" id="citadel-peak">
+      <h2>
+        Pettingel and Citadel Peaks
+      </h2>
+      <p>
+        <time datetime="2000-07">July 21-23, 2000</time>
+		</p>
+      <p>
+        I climb Pettingel and Citadel Peaks on a great weekend, with an "interesting" descent from
+        Citadel.
+		</p>
+      <details>
+        <summary>Read more...</summary>
+        <p>
+          Mike and I have been up Herman Gulch so many times I've lost track. We've day hiked it in
+          the summer, snow shoed it in the winter, and done both winter and summer camping trips to
+          Herman Lake. It's convenient to get to, being just an hour if you drive fast up I-70 from
+          Denver, with the trailhead at the last exit before Eisenhower Tunnel. You can still hear
+          the highway for the first half mile of trail, but then once you've reached the hanging
+          valley and begun the long walk towards Herman Lake it gets quiet and feels like it could
+          be miles from anywhere. Of course this is belied in the winter when we've heard them
+          shelling the nearby hills with howitzers to trigger and clear avalanches before they
+          threaten either the tunnel or Berthoud or Loveland passes, all of which are relatively
+          close. It is a strange feeling to be camped in one valley and hear shells landing in the
+          next valley over!
+		</p>
+        <p>
+          The following is extracted from a trip report for the weekend of July 21-23, 2000, when I
+          summited both Pettingell and Citadel Peaks.
+		</p>
+        <blockquote>
+          <p>
+            Mike and I left town at 1:00pm on Fri. and headed up to Herman Gulch. We hit the
+            trailhead (10,300'&mdash;last exit before the Eisenhower Tunnel on I-70) a little
+            before 2:00. We then pounded out the three plus miles to Herman Lake (12,000') in a
+            little over an hour and a half, and had camp set up in a sheltered bit of krummholz 100
+            yards south of the lake by 4:00. Mike's feet were hurting from his new mountaineering
+            boots, so he hung around in camp while I said, "I'm going to go up on that shelf over
+            behind the lake." I quickly made the 12,300' shelf west of the lake, and then looked up
+            at Pettingell Peak (13,553') rising northeast above it, one of my goals for the
+            weekend.
+			</p>
+          <p>
+            My mind then went into this weird mode of playfulness I get into some times&mdash;"I
+            will just see how far I can go by 5:00" (it was about 4:15 at the time&mdash;in the
+            back of my mind was summiting, but in that mode of thinking, I never admit it to
+            myself). I started up the steep scree slopes, which were quite loose, most of the rock
+            lying right at the angle of repose, and sliding out as I scrambled up. By 5:00, I had
+            made the 13,300' col between Pettingell and Point 13418 to the south. Since
+            Pettingell's summit was only another 200' feet in gain, I quickly summited it, reaching
+            the top at 5:10. What a great feeling, to pull off something a day early, on a lark.
+			</p>
+          <p>
+            I then went a little ways east along the summit ridge, and then descended another scree
+            slope, even steeper than the one I went up, but with the benefit of deep loose scree on
+            a 45 degree angle slope, I was able to "rock glissade" quickly down 600', then worked
+            my way through some minor cliff bands down to the back side of the lake, and then back
+            around to the campsite.
+			</p>
+          <p>
+            There were two or three other tents up in the area Friday night, and while we were
+            cooking dinner, our closet neighbor came over to use our stove&mdash;his had broken
+            after successfully cooking his girlfriend's dinner, but before he could get his done.
+            We talked with him for a while&mdash;nice guy named Michael. They were out for 10 days
+            from Virginia, and were going to do a snow couloir up Citadel Pk (13,294'), a rugged
+            looking peak with an impressive summit block to the southwest of the lake that
+            dominates the valley. My plan for Saturday was to climb it, because Mike and I had been
+            up on its side quite a ways on snow shoes a few winters ago, before snow conditions
+            turned us back, but I didn't like the looks of that couloir at all&mdash;going up
+            through cliffs, it was at least a 45&deg; degree slope most of the way, and since it
+            was east-facing, and given the crumbly look of the surrounding rock, looked like a good
+            place for rockfall as well. They had the appropriate gear (ice axes, crampons), but we
+            did not. So we decided to go up to the pass to the south of the peak, and then work up
+            from the south ridge.
+			</p>
+          <p>
+            In the morning, we got a decent start off at 6:00am, about five minutes behind Michael
+            and his girlfriend. We traversed around the valley head towards the bottom of the pass.
+            On the way, we passed an area that had the most columbine blooming in one place I have
+            ever seen. This has actually been a good summer for wildflowers (which is strange,
+            considering how dry it's been), and all sorts were blooming in profusion in the high
+            reaches of the valley. After crossing the upper reaches of the creek, we were at the
+            game trail leading up the last 200' to the 12,400' pass. Mike told me his feet were
+            really bothering him, and if I saw him turn back (he is usually slower and somewhat
+            behind me on these things anyway&mdash;bad knees), that I should just keep going, and
+            this is what ended up transpiring&mdash;he ended up only making about another 200' from
+            the pass before returning to camp. My master plan was to try and do a full ridge
+            traverse around the head of the valley, but that depended on finding a way completely
+            over the rough ridges of Citadel Peak.
+			</p>
+          <p>
+            I started ascending the south ridge of Citadel, and when I reached the foot of the main
+            summit block, was confronted by three steep gullies going through 100-150' of cliffs. I
+            tried the rightmost (E) gully first, but reached a place within that was
+            overhanging&mdash;I am sure John and Sally could have made short work of it but it was
+            a little too much for me, considering the exposure, so I descended. The middle gully
+            didn't look appetizing at all, so then I tried the leftmost (western) gully. It went
+            OK, mostly a series of ramps going up at about 45&deg; degree angles, but about halfway
+            up, there was an iffy part where I had to decide to really commit to it&mdash;the rock
+            was somewhat rotten, the holds a little tenuous (for me), and I knew once I had made it
+            past that part, I would not be able to downclimb back down it. I made it through OK,
+            but with a few places where I did not linger because the holds were not in a shape to
+            do any more but kinda crumble, move, and fall away as I passed over them. I then was
+            moving over rocky but OK ground, with excellent views of the Williams Fork Mountains
+            directly below me to the west, with the Gore Range rising rocky and majestic beyond
+            them. Holy Cross was clearly visible in the distance as well.
+			</p>
+          <p>
+            I was now on the south block of Citadel. I downclimbed a small gap in the cliff to the
+            col separating it from the higher north block (this was fairly short, but hairy for me,
+            especially since it required me to actually downclimb facing into the cliff&mdash;I am
+            still not very good at that sort of thing, where I can't see far and can only see to
+            the next foothold). This col is the top of the snow couloir Michael and his girlfriend
+            were going to try. I noted that I could escape off the west side here, if I needed to,
+            but it would be down a heinous scree gully, and I would end up having to lose 1,000' in
+            elevation, and then traverse over and re-climb that same 1,000' to regain the pass and
+            pass back over into Herman Gulch. But since I was still feeling OK (a little
+            nervous&mdash;after coming back and reading the guide book, it notes there is some
+            "tricky scrambling" at the top of Citadel, which really was more full hands and feet
+            climbing, IMHO), I decided to keep going on my original plan.
+			</p>
+          <p>
+            I made it up the other side of the col, and quickly reached the main summit of Citadel
+            at approximately 7:15AM. I stopped for a food and water break, and then kept moving
+            along the rocky ridge, encountering cliff bands constantly, but always being able to
+            work around to one side or another, and find some small shelf to get by on. Of course,
+            the exposure and the fairly poor condition of the rock (which made these shelves, some
+            only a foot or so wide, consist of lots of loose rock and dirt) were a little
+            nerve-wracking to my amateur mind. But I always try to remember John's little dictum of
+            "Don't decide to turn back, make the mountain <b>make you</b> turn back," and so I kept
+            going, because there hadn't been anything <b>too</b> bad yet, although there were
+            places (the gully ascent, the descent to the col), that had definitely had my
+            adrenaline going.
+			</p>
+          <p>
+            But I finally reached a point, about 1/4 mi. along the ridge heading north, where I
+            reached a real cliff&mdash;I would estimate it at 100-150'. I tried both sides. To the
+            east was a small and very precarious looking ledge that seemed to terminate in thin air
+            before getting past the cliff band. I didn't like the looks of it at all. I then went
+            around to the west, and descended a ways along a series of rubbly ledges, until I was
+            faced with the choice of descending at least 500' down yet another scree gully, with no
+            clear hope that I'd be able to work my way back up to any place to regain the ridge
+            farther on, since the ridge was curving to the right (northeast), and I couldn't see
+            clearly beyond the rib forming the far side of the gully. I didn't want to count on
+            being able to regain the ridge, since the north side of the Divide at this point is the
+            rockier, steeper side. I finally had to admit I was beaten. If John were along, he
+            could have found a route and coaxed me through it, I'm sure, but with the rock being in
+            the condition it was, the exposure being high, and being by myself, I decided "He who
+            runs away lives to climb another day."
+			</p>
+          <p>
+            I headed back south along the ridge line, and then started heading along a series of
+            ledges through the east cliffs towards the snow couloir. From the top, the couloir
+            didn't look so bad, so I thought I'd try and climb down the side of it, instead of
+            heading down the west side losing all that elevation, and regaining it back to the pass
+            and crossing back over to the east side there. <b>Big</b> mistake. After a few touch
+            and go places where I almost slid and fell on the loose rock I was descending (and
+            feeling like the mountain goat I saw above me to the north was laughing at my
+            amateurish efforts), I finally made it to the couloir about 200' below the col, 600'
+            from the bottom. Right when I hit it, Michael and his girlfriend were passing by. We
+            had a nice chat, with me bravely hiding my concern about my descent choice. I had the
+            presence of mind to ask if there were any people below us, because I knew I could be
+            letting rocks loose in my descent down the rubbly side of the couloir, but there were
+            not. I wasn't as worried about them being above me, since they were sticking to the
+            snow, although there was one good sized rock that came by me on my way down, but
+            whether it was released by them, or just the warming sun, I don't know. The snow slopes
+            at the bottom were covered with little trails leading from above, each ending in a
+            rock, so rockfall was common here, as I had thought it would be.
+			</p>
+          <p>
+            After they had passed, I then started down. The snow itself was in no condition for me
+            to be on it in just boots&mdash;soft on top for an inch or two, but quickly hardening
+            underneath, and STEEP, with no good safe run out at the bottom hundreds of feet below.
+            If I started sliding on it, I would be seriously hurt or dead by the time I reached the
+            rocky bottom. So I stayed to the left side of it, edging along the cliffs, sometimes
+            passing above the snow on a ledge, sometimes squeezing through the crack between the
+            ice and the cliffs, sometimes "crabwalking" down, one foot on a protrusion on the rock,
+            the other on a step I'd kicked in the snow, or on the edge of the ice. There were
+            multiple places where I was brought up short by lack of good options, but knew I
+            <b>had</b> to get down, and I knew I did <b>not</b> want to get hurt, so I would calm
+            down, consider which option sucked the least, and get through it somehow.
+			</p>
+          <p>
+            I finally made it to a rock outcropping in the middle of the ice, where, when seen from
+            the bottom, the snow looked like it made a "Y" around it&mdash;I could not keep going
+            down the left side, since I did not like the looks of the cliffs at all, and the snow
+            steepened in the same place. There was a little place to cross over to the right side,
+            but it involved traversing over about 15' of really steep snow to gain some rock that
+            then became a steep talus slope heading all the way down to the bottom. At this point
+            shifting, rolling, ankle-grabbing, steep talus looked like a warm comfortable bed at
+            home to me in comparison, so I <b>knew</b> I had to make it across that narrow branch
+            of snow.
+			</p>
+          <p>
+            I took a sharp rock in my hand, imitating what I had seen John do a few weeks ago (and
+            also knowing it would be futile to stop me if I slipped&mdash;most likely it would
+            simply be something I'd let go of in my slide, only to deliver the crowning blow to my
+            head whenever my slide would stop), and started to slowly, <b>slowly</b> kick steps
+            across the snow slope. I would estimate it was at least a 45&deg; degree slope where I
+            was crossing, steepening right below me. I had no room for error. I took my time, and
+            that 15' probably only took two minutes to cross, but it seemed like 15. I was
+            <b>completely there</b> in a meditative sense&mdash;totally focused. I finally stepped
+            onto the wet rock on the other side, and quickly scrambled up onto the talus slope. I
+            would normally have been elated, but this time I knew what I had accomplished at a
+            deeper level, and was simply grateful, and somewhat shaky.
+			</p>
+          <p>
+            I then began to quickly descend the talus slope. With the right boots on, and in the
+            right, "mindful" state of mind (which I maintained &mdash;I did not want to crown
+            safely descending the couloir with breaking a leg or ankle in the last few hundred feet
+            of descent because of lack of focus), it was short work to reach the headwaters of the
+            creek, and then begin the traverse along the south slopes of the ridge. I was back to
+            camp by 10:00. Not a bad four hours of work!
+			</p>
+          <p>
+            So, with two 13ers on the Continental Divide under my belt in less than 14 hours, and
+            with living through the second one, I had enough of a sense of accomplishment for my
+            mind and ego for one weekend, and since Mike's feet were bleeding, blistered toast (but
+            only for going uphill, not for descents), we decided to break camp a day early and head
+            out. I ate first, because I was completely bonked after my descent, and then we headed
+            out at 11:00, reaching the trailhead by noon.
+			</p>
+        </blockquote>
+		<h3>
+		  Pettingel Peak
+		</h3>
+		<dl>
+		  <dt>
+			  One-Way Time</dt>
+		  <dd>
+			1:10</dd>
+		  <dt>
+			Starting Elevation</dt>
+		  <dd>
+			~12,000'</dd>
+		  <dt>
+			Maximum Elevation</dt>
+		  <dd>
+			13,553'</dd>
+		</dl>
+		<h3>
+		  Citadel Peak
+		</h3>
+		<dl>
+		  <dt>
+			Round Trip Time</dt>
+		  <dd>
+			4:00</dd>
+		  <dt>
+			Starting Elevation</dt>
+		  <dd>
+			~12,000'</dd>
+		  <dt>
+			Maximum Elevation</dt>
+		  <dd>
+			13,294'</dd>
+	  	</dl>
+      </details>
+    </article>
+		<h1 id="fun-and-sundry">
+		  Fun and Sundry
+		</h1>
+		<p class="sectionsummary">
+		  Mostly things I've written to entertain myself.</p>
+		<article class="blogpost" id="a-bridge-to-nowhere">
+		  <h2>
+			A Bridge to Nowhere
+		  </h2>
+		  <p>
+			A little story about management, goals and quality assurance.
+			</p>
+		  <details>
+			<summary>Read more...</summary>
+			<p>
+			  I have recently finished reading a new set of <a href=
+			  "http://thecodelesscode.com/contents" target="_blank" title="kōans for programmers">kōans
+			  for programmers</a>. I have long loved reading <a href=
+			  "http://en.wikipedia.org/wiki/Koans" target="_blank" title="kōans">kōans</a> in general.
+			  I like their paradoxical stories, even if I don't necessarily achieve enlightenment while
+			  reading them.
+			</p>
+			<p>
+			  Given the nature of my personality, today I thought of the idea of writing "anti-kōans."
+			  Just like what <a href="http://despair.com/" target="_blank" title=
+			  "Despair.com poster generator site">Despair.com</a> has done with (de-)motivational
+			  posters, I wondered, "How could you come up with&nbsp;kōans that bring home a lesson, a
+			  real, valuable lesson, but about something that is not necessarily positive or
+			  enlightening?" Below is my first example, something I call a "grōan" (pun intended). I am
+			  thinking of writing a series of them called "The Hateless Hate" (based on <i><a href= "http://en.wikipedia.org/wiki/The_Gateless_Gate" target="_blank" title=
+			  "The Gateless Gate">The Gateless Gate</a></i>&mdash;get it?)
+			</p>
+			<blockquote>
+			  <p>
+				<b>A bridge to nowhere</b>
+				</p>
+			  <p>
+				Once the prince came to Jiǎogēn, the humble monk tasked with making sure all foot,
+				rider and wagon traffic moved on the kingdom's roads as quickly and directly as
+				possible. The prince declared his vision for a new bridge, which would become the main
+				bridge by which the many merchants, pilgrims and others in the kingdom would cross the
+				dangerous, raging river to reach the imperial city, replacing the sturdy, if old and
+				rather ugly stone bridge that was used now. The dream of the new bridge that the prince
+				described to the monk was indeed impressive. It was to be built entirely of spider
+				silk, renowned for its strength and versatility, and would be the envy of all rival
+				kingdoms near and far.
+				</p>
+			  <p>
+				"Surely it will take many years to construct such a worthy edifice, especially
+				considering the need to use materials unfamiliar to any of the kingdom's craftspeople,
+				requiring them to learn new skills," thought the monk. Caution would obviously be
+				warranted, since if the bridge failed it would send whoever was on it&mdash;merchants,
+				visiting dignitaries, perhaps the king himself&mdash;plummeting to their deaths in the
+				rapids below. Therefore, Jiǎogēn asked how much time would be available to create such
+				an impressive structure.
+				</p>
+			  <p>
+				"Three months," answered the prince.
+				</p>
+			  <p>
+				"Three months?" replied the monk, unsure that he had heard correctly. "Surely you mean
+				three seasons? Or perhaps even three years?"
+				</p>
+			  <p>
+				"Three months. It must be ready in time for the opening day of the large summer fair in
+				the city. It will be the showcase of our power to all around."
+				</p>
+			  <p>
+				"But in just three months time, we might just possibly be able to gather enough spider
+				silk to build a simple rope bridge," protested the monk.
+				</p>
+			  <p>
+				"The treasury has been instructed to allow you to purchase whatever you need. You will
+				have your silk."
+				</p>
+			  <p>
+				"And none of our engineers are familiar with working with spider silk," continued
+				Jiǎogēn.
+				</p>
+			  <p>
+				"Here are some scrolls describing how monks in other kingdoms have been able to build
+				simple ladders using such silk," replied the prince. "A ladder is just like a
+				bridge&mdash;a bridge between different heights instead of different sides! Such
+				examples must be similar enough to be useful to you. And I have great confidence in
+				your ability to take these descriptions of such puny attempts and expand them far
+				beyond simple toys and build a bridge impressive enough to make our kingdom famous far
+				and wide!"
+				</p>
+			  <p>
+				"But even if we can purchase all the silk we need, and even if I can draft every worker
+				in the countryside, and even if I can decipher these arcane scrolls and extract any
+				useful lessons from them, three months gives us barely enough time to build such an
+				edifice. There won't be time to make sure it can withstand the massive amount of
+				people, animals, carts, chariots and wagons that will be crossing it to enter the city
+				for the opening of the festival!", cried the monk. "How can we possibly open the new
+				bridge if it hasn't been given a fair trial? Who will test it?"
+				</p>
+			  <p>
+				"The travelers are aware of their role," calmly answered the prince, as he strode from
+				the room.
+				</p>
+			  <p>
+				Upon hearing this, Jiǎogēn became <a href="http://dictionary.reference.com/browse/benighted" target="_blank" title=
+				"benighted">benighted</a>.
+				</p>
+			</blockquote>
+      		</details>
+   		</article>
 	</main>
 	<aside class="advertisement">
 		<a href="https://www.oreilly.com/library/view/fuzzy-data-matching/9781098152260/"><img src="images/bookad1.jpg" alt="Ad for book Fuzzy Data Matching with SQL"></a>
 	</aside>
 	<footer>
 		<img src="images/dullroarlogo1-white.svg" alt="Footer Dullroar logo">
-		<p>Copyright 2023</p>
-		<p>Careers</p>
+		<p>Copyright 2023 - Dullroar Enterprises - All rights reserved.</p>
 	</footer>
 </body>
 </html>
