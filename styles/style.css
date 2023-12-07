@@ -20,6 +20,7 @@ body {
 h1 {
 	font-family: 'Francois One', sans-serif;
 	padding: 1em;
+	font-size: 2em;
 }
 
 h2 {
@@ -40,15 +41,16 @@ p {
 }
 
 a {
-	color: #F99D25;
-}
-
-a:hover {
-	color: #5AC5C4;
+	color: inherit;
+	text-decoration: underline dotted;
 }
 
 a:visited {
-	color: #5AC5C4;
+	color: #314846;
+}
+
+a:hover {
+	color: #F99D25;
 }
 
 /* Default - Header styles */
@@ -59,11 +61,12 @@ header {
 	grid-row: 1/2;
 	width: 100%;
 	height: 100%;
-	background-colors: #E4EDEB;
+	background-color: #E4EDEB;
+	box-shadow: 0 -10em 0 0em #E4EDEB;
 }
 
 header img {
-	width: 25%;
+	width: 23%;
 	display: block;
 	margin-left: 35%;
 	margin-right: auto;
@@ -132,16 +135,6 @@ main {
 	grid-row: 3/4;
 }
 
-.sectiontitle {
-	background: #5AC5C4;
-	padding-left: .5em;
-	margin: 2em auto 1em auto;
-}
-
-a.sectiontitle {
-	color: inherit;
-	text-decoration: none;
-}
 
 /* Default - Aside styles */
 aside {
@@ -240,19 +233,42 @@ footer p {
 
 /* About page */
 #companyhistory img {
-	height: 50px;
+	height: 10em;
+	float: left;
+	margin: 1.5em 1em 1em;
 }
 
-.employeephoto img {
+#companyhistory h1 {
+	margin-bottom: -1em;
+}
+
+#employees {
+	margin: 2em;
+}
+
+#employees h2 {
+	background: #5AC5C4;
+	padding-left: 1em;
+	margin: 2em auto auto;
+	text-align: center;
+}
+
+.employeephoto {
 	float: left;
 	height: 150px;
-	margin: auto 1em 1em auto;
+	margin: 2em 2em;
 }
 
 .employeebio {
 	display: flow-root;
 	background-color:#E4EDEB;
+	border: .2em solid #5AC5C4;
 }
+
+.employeebio h2 {
+	margin-bottom: -.25em;
+}
+
 
 /* Contact page */
 #contacttable h2 {
@@ -458,6 +474,16 @@ code {
 
 time {
 	font-style: italic;
+}
+
+
+/* 404 page */
+#404 {
+	grid-column: 2/3;
+}
+
+#404 h1 {
+	font-size: 3em;
 }
 
 
