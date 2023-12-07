@@ -271,7 +271,7 @@ footer p {
 
 
 /* Contact page */
-#contacttable h2 {
+#contacttable h1, h2 {
 	text-align: center;
 }
 
@@ -469,7 +469,6 @@ pre {
 
 code {
 	padding: 0 .5em;
-	border-size: .25em;
 }
 
 time {
@@ -478,11 +477,11 @@ time {
 
 
 /* 404 page */
-#404 {
+#pagenotfound {
 	grid-column: 2/3;
 }
 
-#404 h1 {
+#pagenotfound h1 {
 	font-size: 3em;
 }
 
